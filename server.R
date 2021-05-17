@@ -25,7 +25,8 @@ shinyServer(function(input, output) {
             mutate(State = ifelse(Jurisdiction == "immigration", "ICE", State)) %>%
             filter(Jurisdiction %in% c("state", "federal", "immigration")) %>% 
             group_by(Date, State) %>% 
-            summarise_if(is.numeric, sum_na_rm)
+            summarise_if(is.numeric, sum_na_rm) %>% 
+            mutate(Staff.Tadmin = NA)
         
         # Read MP data 
         mp_data_wide <- read_mpap_data(all_dates = TRUE)
@@ -39,7 +40,8 @@ shinyServer(function(input, output) {
             select(State, Date, Measure, MP) %>% 
             pivot_wider(names_from = "Measure", values_from = "MP") %>% 
             mutate(Residents.Active = NA, 
-                   Staff.Active = NA)
+                   Staff.Active = NA, 
+                   Staff.Tadmin = NA)
     })
     
     output$plot <- renderPlotly(
