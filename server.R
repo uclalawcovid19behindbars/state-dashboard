@@ -37,7 +37,9 @@ shinyServer(function(input, output) {
             group_by(State, Date, Measure) %>%
             summarize(MP = max_na_rm(MP), .groups = "drop") %>% 
             select(State, Date, Measure, MP) %>% 
-            pivot_wider(names_from = "Measure", values_from = "MP") 
+            pivot_wider(names_from = "Measure", values_from = "MP") %>% 
+            mutate(Residents.Active = NA, 
+                   Staff.Active = NA)
     })
     
     output$plot <- renderPlotly(
@@ -113,7 +115,7 @@ getMetric <- function(metric, population){
         "Cumulative Deaths" = "Residents.Deaths", 
         "Tests Administered" = "Residents.Tadmin", 
         "Individuals Tested" = "Residents.Tested", 
-        "Individuals Recovered" = "Residents.Recovered"
+        "Active Cases" = "Residents.Active"
     )
     
     lookup_staff <- c(
@@ -121,7 +123,7 @@ getMetric <- function(metric, population){
         "Cumulative Deaths" = "Staff.Deaths", 
         "Tests Administered" = "Staff.Tadmin", 
         "Individuals Tested" = "Staff.Tested", 
-        "Individuals Recovered" = "Staff.Recovered"
+        "Active Cases" = "Staff.Active"
     )
         
     if (population == "Incarcerated People"){

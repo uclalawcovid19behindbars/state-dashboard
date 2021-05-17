@@ -7,7 +7,7 @@ METRICS <- c(
     "Cumulative Deaths", 
     "Tests Administered", 
     "Individuals Tested", 
-    "Individuals Recovered"
+    "Active Cases"
 )
 
 POPULATIONS <- c(
