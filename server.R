@@ -41,7 +41,9 @@ shinyServer(function(input, output) {
             pivot_wider(names_from = "Measure", values_from = "MP") %>% 
             mutate(Residents.Active = NA, 
                    Staff.Active = NA, 
-                   Staff.Tadmin = NA)
+                   Staff.Tadmin = NA, 
+                   Residents.Initiated = NA, 
+                   Staff.Initiated = NA)
     })
     
     output$plot <- renderPlotly(
@@ -117,7 +119,9 @@ getMetric <- function(metric, population){
         "Cumulative Deaths" = "Residents.Deaths", 
         "Tests Administered" = "Residents.Tadmin", 
         "Individuals Tested" = "Residents.Tested", 
-        "Active Cases" = "Residents.Active"
+        "Active Cases" = "Residents.Active", 
+        "Individuals Vaccinated (1+ dose)" = "Residents.Initiated",
+        "Individuals Vaccinated (Fully)" = "Residents.Completed"
     )
     
     lookup_staff <- c(
@@ -125,7 +129,9 @@ getMetric <- function(metric, population){
         "Cumulative Deaths" = "Staff.Deaths", 
         "Tests Administered" = "Staff.Tadmin", 
         "Individuals Tested" = "Staff.Tested", 
-        "Active Cases" = "Staff.Active"
+        "Active Cases" = "Staff.Active", 
+        "Individuals Vaccinated (1+ dose)" = "Staff.Initiated", 
+        "Individuals Vaccinated (Fully)" = "Staff.Completed"
     )
         
     if (population == "Incarcerated People"){

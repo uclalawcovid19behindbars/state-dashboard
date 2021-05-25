@@ -7,7 +7,9 @@ METRICS <- c(
     "Cumulative Deaths", 
     "Tests Administered", 
     "Individuals Tested", 
-    "Active Cases"
+    "Active Cases", 
+    "Individuals Vaccinated (1+ dose)", 
+    "Individuals Vaccinated (Fully)"
 )
 
 POPULATIONS <- c(
