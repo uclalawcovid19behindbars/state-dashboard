@@ -8,18 +8,18 @@ library(scales)
 shinyServer(function(input, output) {
     
     withProgress(message = "Loading Data...", style = "old", {
-        remote_loc <- paste0(
+        remote_state_loc <- paste0(
             "https://raw.githubusercontent.com/uclalawcovid19behindbars/data/", 
             "master/historical-data/historical_state_counts.csv")
-        ctypes <- parseCols(remote_loc)
+        state_ctypes <- parseCols(remote_loc)
         
-        ucla <- remote_loc %>% 
+        scrape <- remote_loc %>% 
             readr::read_csv(col_types = paste0(ctypes, collapse = "")) %>%
             mutate(Staff.Tadmin = NA)
     })
     
     output$plot <- renderPlotly(
-        {getPlot(ucla, input$state, input$metric, input$population)})
+        {getPlot(scrape, input$state, input$metric, input$population)})
 })
 
 parseCols <- function(path){
@@ -33,23 +33,22 @@ parseCols <- function(path){
     return(ctypes)
 }
 
-getPlot <- function(ucla_df, state, metric, population){
+getPlot <- function(df, state, metric, population){
     
     variable <- getMetric(metric, population)
     
-    filtered_ucla <- ucla_df %>% 
+    filtered_df <- df %>% 
         filter(State == state) %>% 
         filter(!is.na(!!sym(variable)))
     
-    plt <- ggplot()
+    plt <- ggplot()  
     
-    if (nrow(filtered_ucla) == 0){
-        plt <- plt +
-            scale_x_date(date_labels = "%b %Y", limits = c(as.Date("2020-03-01"), Sys.Date())) 
+    if (nrow(filtered_df) == 0){
+        plt <- plt 
     }
-    if (nrow(filtered_ucla) > 0){
+    else {
         plt <- plt + 
-            geom_line(data = filtered_ucla, 
+            geom_line(data = filtered_df, 
                       mapping = aes(x = Date, y = !!sym(variable), 
                                     text = sprintf("UCLA Behind Bars<br>Date: %s<br>%s: %s", 
                                                    Date, 
@@ -60,7 +59,7 @@ getPlot <- function(ucla_df, state, metric, population){
     
     plt <- plt + 
         labs(title =  str_c(metric, " Among ", population, "\n", state)) + 
-        scale_x_date(date_labels = "%b %Y") +
+        scale_x_date(date_labels = "%b %Y", limits = c(as.Date("2020-03-01"), Sys.Date())) +
         scale_y_continuous(labels = comma_format(accuracy = 1)) +
         customTheme
     
@@ -87,7 +86,6 @@ getMetric <- function(metric, population){
         "Cumulative Cases" = "Residents.Confirmed", 
         "Cumulative Deaths" = "Residents.Deaths", 
         "Tests Administered" = "Residents.Tadmin", 
-        "Individuals Tested" = "Residents.Tested", 
         "Active Cases" = "Residents.Active", 
         "Individuals Vaccinated (1+ dose)" = "Residents.Initiated",
         "Individuals Vaccinated (Fully)" = "Residents.Completed"
@@ -97,7 +95,6 @@ getMetric <- function(metric, population){
         "Cumulative Cases" = "Staff.Confirmed", 
         "Cumulative Deaths" = "Staff.Deaths", 
         "Tests Administered" = "Staff.Tadmin", 
-        "Individuals Tested" = "Staff.Tested", 
         "Active Cases" = "Staff.Active", 
         "Individuals Vaccinated (1+ dose)" = "Staff.Initiated", 
         "Individuals Vaccinated (Fully)" = "Staff.Completed" 

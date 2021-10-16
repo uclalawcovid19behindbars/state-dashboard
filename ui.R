@@ -6,7 +6,6 @@ METRICS <- c(
     "Cumulative Cases", 
     "Cumulative Deaths", 
     "Tests Administered", 
-    "Individuals Tested", 
     "Active Cases",
     "Individuals Vaccinated (1+ dose)", 
     "Individuals Vaccinated (Fully)"
@@ -32,11 +31,6 @@ shinyUI(fluidPage(
     fluidRow(
         column(12, p("This is an internal dashboard used by the", 
         a("UCLA COVID Behind Bars", href = "https://uclacovidbehindbars.org/"), "data team.",  
-                     align = "center"))
-    ), 
-    fluidRow(
-        column(12, p("It compares our scraped data to systemwide totals reported by 
-                     The Marshall Project for state and federal prison systems.",  
                      align = "center"))
     ), 
     fluidRow(
