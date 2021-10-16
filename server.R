@@ -17,8 +17,6 @@ shinyServer(function(input, output) {
         
         ucla <- remote_loc %>% 
             readr::read_csv(col_types = paste0(ctypes, collapse = "")) %>%
-            group_by(Date, State) %>% 
-            summarise_if(is.numeric, sum_na_rm) %>% 
             mutate(Staff.Tadmin = NA)
         
         # Read MP data 
