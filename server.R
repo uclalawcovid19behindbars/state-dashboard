@@ -11,10 +11,10 @@ shinyServer(function(input, output) {
         remote_state_loc <- paste0(
             "https://raw.githubusercontent.com/uclalawcovid19behindbars/data/", 
             "master/historical-data/historical_state_counts.csv")
-        state_ctypes <- parseCols(remote_loc)
+        state_ctypes <- parseCols(remote_state_loc)
         
-        scrape <- remote_loc %>% 
-            readr::read_csv(col_types = paste0(ctypes, collapse = "")) %>%
+        scrape <- remote_state_loc %>% 
+            readr::read_csv(col_types = paste0(state_ctypes, collapse = "")) %>%
             mutate(Staff.Tadmin = NA)
     })
     
