@@ -10,13 +10,22 @@ shinyServer(function(input, output) {
     withProgress(message = "Loading Data...", style = "old", {
         
         # Read UCLA data 
-        remote_loc <- paste0(
-            "https://raw.githubusercontent.com/uclalawcovid19behindbars/data/", 
-            "master/historical-data/historical_state_counts.csv")
-        ctypes <- parseCols(remote_loc)
+        remote_loc <- "http://104.131.72.50:3838/scraper_data/summary_data/scraped_time_series.csv"
+        jnk <- read.csv(remote_loc, nrows=1, check.names=FALSE)
+        ctypes <- rep("c", ncol(jnk))
+        names(ctypes) <- names(jnk)
+        ctypes[stringr::str_starts(names(ctypes), "Residents|Staff")] <- "d"
+        ctypes[names(ctypes) == "Population.Feb20"] <- "d"
+        ctypes[names(ctypes) == "Date"] <- "D"
         
         ucla <- remote_loc %>% 
             readr::read_csv(col_types = paste0(ctypes, collapse = "")) %>%
+            filter(!Age %in% c("Juvenile")) %>% 
+            mutate(State = ifelse(Jurisdiction == "federal", "Federal", State)) %>%
+            mutate(State = ifelse(Jurisdiction == "immigration", "ICE", State)) %>%
+            filter(Jurisdiction %in% c("state", "federal", "immigration")) %>% 
+            group_by(Date, State) %>% 
+            summarise_if(is.numeric, sum_na_rm) %>% 
             mutate(Staff.Tadmin = NA)
         
         # Read MP data 
