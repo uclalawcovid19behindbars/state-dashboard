@@ -7,7 +7,7 @@ METRICS <- c(
     "Cumulative Deaths", 
     "Tests Administered", 
     "Individuals Tested", 
-    "Active Cases", 
+    "Active Cases",
     "Individuals Vaccinated (1+ dose)", 
     "Individuals Vaccinated (Fully)"
 )
@@ -30,8 +30,8 @@ shinyUI(fluidPage(
         windowTitle = "COVID Behind Bars Dashboard"
     ), 
     fluidRow(
-        column(12, p("This is a work-in-progress internal dashboard used by the", 
-        a("UCLA Law COVID-19 Behind Bars", href = "https://uclacovidbehindbars.org/"), "Data Team.",  
+        column(12, p("This is an internal dashboard used by the", 
+        a("UCLA COVID Behind Bars", href = "https://uclacovidbehindbars.org/"), "data team.",  
                      align = "center"))
     ), 
     fluidRow(
@@ -55,12 +55,16 @@ shinyUI(fluidPage(
     ), 
     fluidRow(
         column(12, align = "center", 
+               style = "
+               position:absolute;
+               bottom:0;
+               width:100%;
+               height:50px; 
+               padding: 10px;
+               z-index: 1000;", 
                tags$footer(
-                   a("UCLA COVID-19 Behind Bars", 
-                     href = "https://uclacovidbehindbars.org/"), " | ", 
-                   a("Dashboard Source Code", 
+                   a("Dashboard Code", 
                      href = "https://github.com/uclalawcovid19behindbars/ts-dashboard"), " | ", 
                    a("Data Repository", 
                      href = "https://github.com/uclalawcovid19behindbars/data"))))
 ))
-

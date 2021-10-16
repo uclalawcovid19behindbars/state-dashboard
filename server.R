@@ -10,20 +10,13 @@ shinyServer(function(input, output) {
     withProgress(message = "Loading Data...", style = "old", {
         
         # Read UCLA data 
-        remote_loc <- "http://104.131.72.50:3838/scraper_data/summary_data/scraped_time_series.csv"
-        jnk <- read.csv(remote_loc, nrows=1, check.names=FALSE)
-        ctypes <- rep("c", ncol(jnk))
-        names(ctypes) <- names(jnk)
-        ctypes[stringr::str_starts(names(ctypes), "Residents|Staff")] <- "d"
-        ctypes[names(ctypes) == "Population.Feb20"] <- "d"
-        ctypes[names(ctypes) == "Date"] <- "D"
+        remote_loc <- paste0(
+            "https://raw.githubusercontent.com/uclalawcovid19behindbars/data/", 
+            "master/historical-data/historical_state_counts.csv")
+        ctypes <- parseCols(remote_loc)
         
         ucla <- remote_loc %>% 
             readr::read_csv(col_types = paste0(ctypes, collapse = "")) %>%
-            filter(!Age %in% c("Juvenile")) %>% 
-            mutate(State = ifelse(Jurisdiction == "federal", "Federal", State)) %>%
-            mutate(State = ifelse(Jurisdiction == "immigration", "ICE", State)) %>%
-            filter(Jurisdiction %in% c("state", "federal", "immigration")) %>% 
             group_by(Date, State) %>% 
             summarise_if(is.numeric, sum_na_rm) %>% 
             mutate(Staff.Tadmin = NA)
@@ -49,6 +42,17 @@ shinyServer(function(input, output) {
     output$plot <- renderPlotly(
         {getPlot(mp, ucla, input$state, input$metric, input$population)})
 })
+
+parseCols <- function(path){
+    jnk <- read.csv(path, nrows=1, check.names=FALSE)
+    ctypes <- rep("c", ncol(jnk))
+    names(ctypes) <- names(jnk)
+    ctypes[stringr::str_starts(names(ctypes), "Residents|Staff")] <- "d"
+    ctypes[names(ctypes) == "Population.Feb20"] <- "d"
+    ctypes[names(ctypes) == "Date"] <- "D"
+    
+    return(ctypes)
+}
 
 getPlot <- function(mp_df, ucla_df, state, metric, population){
     
@@ -131,7 +135,7 @@ getMetric <- function(metric, population){
         "Individuals Tested" = "Staff.Tested", 
         "Active Cases" = "Staff.Active", 
         "Individuals Vaccinated (1+ dose)" = "Staff.Initiated", 
-        "Individuals Vaccinated (Fully)" = "Staff.Completed"
+        "Individuals Vaccinated (Fully)" = "Staff.Completed" 
     )
         
     if (population == "Incarcerated People"){
@@ -142,13 +146,6 @@ getMetric <- function(metric, population){
         lookup_staff[metric] %>% 
             unname()
     }
-}
-
-max_na_rm <- function(x){
-    if(all(is.na(x))){
-        return(NA)
-    }
-    max(x, na.rm = TRUE)
 }
 
 customTheme <- 
