@@ -8,46 +8,18 @@ library(scales)
 shinyServer(function(input, output) {
     
     withProgress(message = "Loading Data...", style = "old", {
-        
-        # Read UCLA data 
-        remote_loc <- "http://104.131.72.50:3838/scraper_data/summary_data/scraped_time_series.csv"
-        jnk <- read.csv(remote_loc, nrows=1, check.names=FALSE)
-        ctypes <- rep("c", ncol(jnk))
-        names(ctypes) <- names(jnk)
-        ctypes[stringr::str_starts(names(ctypes), "Residents|Staff")] <- "d"
-        ctypes[names(ctypes) == "Population.Feb20"] <- "d"
-        ctypes[names(ctypes) == "Date"] <- "D"
+        remote_loc <- paste0(
+            "https://raw.githubusercontent.com/uclalawcovid19behindbars/data/", 
+            "master/historical-data/historical_state_counts.csv")
+        ctypes <- parseCols(remote_loc)
         
         ucla <- remote_loc %>% 
             readr::read_csv(col_types = paste0(ctypes, collapse = "")) %>%
-            filter(!Age %in% c("Juvenile")) %>% 
-            mutate(State = ifelse(Jurisdiction == "federal", "Federal", State)) %>%
-            mutate(State = ifelse(Jurisdiction == "immigration", "ICE", State)) %>%
-            filter(Jurisdiction %in% c("state", "federal", "immigration")) %>% 
-            group_by(Date, State) %>% 
-            summarise_if(is.numeric, sum_na_rm) %>% 
             mutate(Staff.Tadmin = NA)
-        
-        # Read MP data 
-        mp_data_wide <- read_mpap_data(all_dates = TRUE)
-        mp <- mp_data_wide %>%
-            filter(!is.na(Date)) %>%
-            mutate(Date = lubridate::floor_date(Date, "week")) %>%
-            tidyr::pivot_longer(
-                -(State:Date), names_to = "Measure", values_to = "MP") %>%
-            group_by(State, Date, Measure) %>%
-            summarize(MP = max_na_rm(MP), .groups = "drop") %>% 
-            select(State, Date, Measure, MP) %>% 
-            pivot_wider(names_from = "Measure", values_from = "MP") %>% 
-            mutate(Residents.Active = NA, 
-                   Staff.Active = NA, 
-                   Staff.Tadmin = NA, 
-                   Residents.Initiated = NA, 
-                   Staff.Initiated = NA)
     })
     
     output$plot <- renderPlotly(
-        {getPlot(mp, ucla, input$state, input$metric, input$population)})
+        {getPlot(ucla, input$state, input$metric, input$population)})
 })
 
 parseCols <- function(path){
@@ -61,13 +33,9 @@ parseCols <- function(path){
     return(ctypes)
 }
 
-getPlot <- function(mp_df, ucla_df, state, metric, population){
+getPlot <- function(ucla_df, state, metric, population){
     
     variable <- getMetric(metric, population)
-    
-    filtered_mp <- mp_df %>% 
-        filter(State == state) %>% 
-        filter(!is.na(!!sym(variable)))
     
     filtered_ucla <- ucla_df %>% 
         filter(State == state) %>% 
@@ -75,19 +43,9 @@ getPlot <- function(mp_df, ucla_df, state, metric, population){
     
     plt <- ggplot()
     
-    if (nrow(filtered_mp) == 0 & nrow(filtered_ucla) == 0){
+    if (nrow(filtered_ucla) == 0){
         plt <- plt +
             scale_x_date(date_labels = "%b %Y", limits = c(as.Date("2020-03-01"), Sys.Date())) 
-    }
-    if (nrow(filtered_mp) > 0){
-        plt <- plt + 
-            geom_bar(data = filtered_mp, 
-                     mapping = aes(x = Date, y = !!sym(variable), 
-                                   text = sprintf("The Marshall Project<br>Date: %s<br>%s: %s", 
-                                                  Date, 
-                                                  metric, 
-                                                  comma(!!sym(variable), accuracy = 1))), 
-                     stat = "identity", alpha = 0.3, fill = "#84816F")
     }
     if (nrow(filtered_ucla) > 0){
         plt <- plt + 
